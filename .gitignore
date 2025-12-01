@@ -1,0 +1,19 @@
+# Node modules (if you use npm later)
+node_modules/
+
+# Composer dependencies (if you add any PHP packages later)
+vendor/
+
+# Environment variables (NEVER commit this)
+.env
+
+# Log files
+*.log
+
+# Operating system junk files
+.DS_Store
+Thumbs.db
+
+# IDE config files
+.vscode/
+.idea/
