@@ -2,6 +2,8 @@
 
 require_once __DIR__ . "/../models/User.php";
 require_once __DIR__ . "/../utils/Response.php";
+require_once __DIR__ . "/../utils/JwtHelper.php";
+
 
 class AuthController {
     private $conn;
@@ -60,7 +62,12 @@ class AuthController {
 
         // Remove password from response
         unset($user["password"]);
+        // Generate token
+        $token = JwtHelper::generateToken($user["id"], $user["email"]);
 
-        Response::json(200, "Login successful", $user);
+        Response::json(200, "Login successful", [
+            "user" => $user,
+            "token" => $token
+        ]);
     }
 }

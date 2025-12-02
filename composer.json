@@ -1,0 +1,12 @@
+{
+    "name": "rend1027/student-planner-be",
+    "authors": [
+        {
+            "name": "Florencio Rendon",
+            "email": "rend1027@yahoo.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.11"
+    }
+}
