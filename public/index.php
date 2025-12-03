@@ -29,7 +29,9 @@ $router->post("/api/tasks/create", function($db) {
     $auth = AuthMiddleware::requireToken(); 
 });
 
-// -----------------------
+// Delete Event route
+$router->delete("/api/events/delete", [EventController::class, "delete"]);
+
+
 // RUN ROUTER
-// -----------------------
 $router->run($db);

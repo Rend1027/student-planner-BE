@@ -72,22 +72,45 @@ class Event
     }
 
     public function checkConflict($studentId, $day_of_week, $start_time, $end_time)
-{
-    $query = "SELECT *
+    {
+        $query = "SELECT *
               FROM " . $this->table . "
               WHERE student_id = :student_id
                 AND day_of_week = :day_of_week
                 AND (:start_time < end_time)
                 AND (:end_time > start_time)";
 
-    $stmt = $this->conn->prepare($query);
+        $stmt = $this->conn->prepare($query);
 
-    $stmt->bindParam(":student_id", $studentId);
-    $stmt->bindParam(":day_of_week", $day_of_week);
-    $stmt->bindParam(":start_time", $start_time);
-    $stmt->bindParam(":end_time", $end_time);
+        $stmt->bindParam(":student_id", $studentId);
+        $stmt->bindParam(":day_of_week", $day_of_week);
+        $stmt->bindParam(":start_time", $start_time);
+        $stmt->bindParam(":end_time", $end_time);
 
-    $stmt->execute();
-    return $stmt->fetch();
-}
+        $stmt->execute();
+        return $stmt->fetch();
+    }
+
+    public function checkConflictForUpdate($studentId, $day_of_week, $start_time, $end_time, $eventId)
+    {
+        $query = "SELECT *
+              FROM " . $this->table . "
+              WHERE student_id = :student_id
+                AND day_of_week = :day_of_week
+                AND id != :event_id
+                AND (:start_time < end_time)
+                AND (:end_time > start_time)";
+
+        $stmt = $this->conn->prepare($query);
+
+        $stmt->bindParam(":student_id", $studentId);
+        $stmt->bindParam(":day_of_week", $day_of_week);
+        $stmt->bindParam(":start_time", $start_time);
+        $stmt->bindParam(":end_time", $end_time);
+        $stmt->bindParam(":event_id", $eventId);
+
+        $stmt->execute();
+        return $stmt->fetch();
+    }
+
 }

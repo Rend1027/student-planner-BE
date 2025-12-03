@@ -71,10 +71,28 @@ class EventController
             Response::json(400, "Event ID required");
         }
 
-        $updated = $this->eventModel->update($input["id"], $studentId, $input);
+        $eventId = $input["id"];
+
+        // Check for conflict (exclude the event itself)
+        $conflict = $this->eventModel->checkConflictForUpdate(
+        $studentId,
+        $input["day_of_week"],
+        $input["start_time"],
+        $input["end_time"],
+        $eventId
+        );
+        
+        if ($conflict) {
+        Response::json(409, "This update conflicts with another scheduled item", [
+            "conflict_with" => $conflict
+        ]);
+        }
+
+        // Perform update
+        $updated = $this->eventModel->update($eventId, $studentId, $input);
 
         if ($updated) {
-            Response::json(200, "Event updated");
+            Response::json(200, "Event updated successfully");
         }
 
         Response::json(500, "Failed to update event");
@@ -91,10 +109,12 @@ class EventController
             Response::json(400, "Event ID required");
         }
 
-        $deleted = $this->eventModel->delete($input["id"], $studentId);
+        $eventId = $input["id"];
+
+        $deleted = $this->eventModel->delete($eventId, $studentId);
 
         if ($deleted) {
-            Response::json(200, "Event deleted");
+        Response::json(200, "Event deleted successfully");
         }
 
         Response::json(500, "Failed to delete event");
