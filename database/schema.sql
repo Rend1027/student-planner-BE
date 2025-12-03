@@ -1,10 +1,13 @@
+CREATE DATABASE IF NOT EXISTS student_planner;
+USE student_planner;
+
 CREATE TABLE users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL,
     email VARCHAR(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     role ENUM('student', 'admin') NOT NULL,
-    created_at DATETIME NOT NULL
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE events (
@@ -15,9 +18,9 @@ CREATE TABLE events (
     date DATE NULL,
     start_time TIME NOT NULL,
     end_time TIME NOT NULL,
-    day_of_week ENUM('mon','tue','wed','thu','fri','sat','sun') NULL,
-    type ENUM('class','exam','meeting','personal') NOT NULL,
-    created_at DATETIME NOT NULL,
+    day_of_week ENUM('mon','tue','wed','thu','fri','sat','sun') NOT NULL,
+    type ENUM('class','event') NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES users(id)
 );
 
@@ -29,7 +32,7 @@ CREATE TABLE tasks (
     due_date DATE NOT NULL,
     due_time TIME NULL,
     alarm_time TIME NULL,
-    created_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES users(id)
 );
 
@@ -39,6 +42,6 @@ CREATE TABLE notifications (
     message VARCHAR(255) NOT NULL,
     type ENUM('reminder','task','event') NOT NULL,
     is_read BOOLEAN NOT NULL DEFAULT 0,
-    created_at DATETIME NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (student_id) REFERENCES users(id)
 );
