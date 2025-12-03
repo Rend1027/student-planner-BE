@@ -26,10 +26,25 @@ class EventController
             Response::json(400, "Missing required fields");
         }
 
+            // --- CONFLICT CHECK ---
+        $conflict = $this->eventModel->checkConflict(
+        $studentId,
+        $input["day_of_week"],
+        $input["start_time"],
+        $input["end_time"]
+        );
+
+        if ($conflict) {
+        Response::json(409, "This event conflicts with another scheduled item", [
+            "conflict_with" => $conflict
+        ]);
+        }
+
+        // No conflict → create event
         $created = $this->eventModel->create($studentId, $input);
 
         if ($created) {
-            Response::json(201, "Event created successfully");
+        Response::json(201, "Event created successfully");
         }
 
         Response::json(500, "Failed to create event");

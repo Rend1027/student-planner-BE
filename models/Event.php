@@ -70,4 +70,24 @@ class Event
         $stmt->bindParam(":student_id", $studentId);
         return $stmt->execute();
     }
+
+    public function checkConflict($studentId, $day_of_week, $start_time, $end_time)
+{
+    $query = "SELECT *
+              FROM " . $this->table . "
+              WHERE student_id = :student_id
+                AND day_of_week = :day_of_week
+                AND (:start_time < end_time)
+                AND (:end_time > start_time)";
+
+    $stmt = $this->conn->prepare($query);
+
+    $stmt->bindParam(":student_id", $studentId);
+    $stmt->bindParam(":day_of_week", $day_of_week);
+    $stmt->bindParam(":start_time", $start_time);
+    $stmt->bindParam(":end_time", $end_time);
+
+    $stmt->execute();
+    return $stmt->fetch();
+}
 }
