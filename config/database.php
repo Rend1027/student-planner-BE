@@ -3,7 +3,7 @@ class Database {
     private $host = "localhost";
     private $db_name = "student_planner";
     private $username = "root";   // change if needed
-    private $password = "your_password_here";       // change if needed
+    private $password = "zianpassword";       // change if needed
     public $conn;
 
     public function connect() {

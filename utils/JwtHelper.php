@@ -4,7 +4,7 @@ use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
 class JwtHelper {
-    private static $secret = "4b!xpPG^eL1Z@h6Q8Rzo!wZ9sKwvcL"; // cahng this
+    private static $secret = "my-secret-should-remain-secret"; // change this
 
     public static function generateToken($userId, $email) {
         $payload = [

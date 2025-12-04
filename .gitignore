@@ -1,19 +1,32 @@
-# Node modules (if you use npm later)
-node_modules/
+# ============================
+# FRONTEND IGNORE
+# ============================
+student-planner-FE/node_modules/
+student-planner-FE/dist/
+student-planner-FE/.local
 
-# Composer dependencies (if you add any PHP packages later)
+# ============================
+# BACKEND IGNORE
+# ============================
 vendor/
-
-# Environment variables (NEVER commit this)
+composer.lock
+*.env
 .env
 
-# Log files
+# ============================
+# COMMON IGNORE
+# ============================
+node_modules/
+dist/
+
+# Logs
+logs
 *.log
 
-# Operating system junk files
+# OS files
 .DS_Store
 Thumbs.db
 
-# IDE config files
+# IDE files
 .vscode/
 .idea/
