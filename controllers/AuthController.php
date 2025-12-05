@@ -20,7 +20,7 @@ class AuthController {
         $input = json_decode(file_get_contents("php://input"), true);
 
         if(!isset($input["username"], $input["email"], $input["password"])) {
-            Response::json(400, "Missing required fields (username, email, password");
+            Response::json(400, "Missing required fields (username, email, password)");
         }
 
         $username = trim($input["username"]);
@@ -36,38 +36,40 @@ class AuthController {
         // Create user
         $created = $this->userModel->create($username, $email, $password, $role);
 
-        if($created) {
+        if(!$created) {
             Response::json(500, "Failed to create user");
         }
+
         Response::json(201, "User registered successfully");
     }
 
     // Login user
-    public function login() {
-        $input = json_decode(file_get_contents("php://input"), true);
+   public function login() {
+    $input = json_decode(file_get_contents("php://input"), true);
 
-        if (!isset($input["email"], $input["password"])) {
-            Response::json(400, "Missing required fields (email, password)");
-        }
-
-        $email = trim($input["email"]);
-        $password = $input["password"];
-
-        // Verify credentials
-        $user = $this->userModel->verifyPassword($email, $password);
-
-        if (!$user) {
-            Response::json(401, "invalid email or password");
-        }
-
-        // Remove password from response
-        unset($user["password"]);
-        // Generate token
-        $token = JwtHelper::generateToken($user["id"], $user["email"]);
-
-        Response::json(200, "Login successful", [
-            "user" => $user,
-            "token" => $token
-        ]);
+    if (!isset($input["email"], $input["password"])) {
+        Response::json(400, "Missing required fields (email, password)");
     }
+
+    $email = trim($input["email"]);
+    $password = $input["password"];
+
+    // Find user by email
+    $user = $this->userModel->findByEmail($email);
+
+    if (!$user || !password_verify($password, $user["password"])) {
+        Response::json(401, "invalid email or password");
+    }
+
+    // Remove password
+    unset($user["password"]);
+
+    // Generate token
+    $token = JwtHelper::generateToken($user["id"], $user["email"], $user["role"]);
+
+    Response::json(200, "Login successful", [
+        "user" => $user,
+        "token" => $token
+    ]);
+}
 }

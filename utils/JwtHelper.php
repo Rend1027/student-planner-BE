@@ -6,11 +6,12 @@ use Firebase\JWT\Key;
 class JwtHelper {
     private static $secret = "my-secret-should-remain-secret"; // change this
 
-    public static function generateToken($userId, $email) {
+    public static function generateToken($userId, $email, $role) {
         $payload = [
             "iss" => "student-planner-api",
             "sub" => $userId,
             "email" => $email,
+            "role" => $role,
             "iat" => time(),
             "exp" => time() + (60 * 60 * 24) // 24 hours
         ];
