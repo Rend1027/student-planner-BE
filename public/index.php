@@ -49,6 +49,34 @@ $router->get("/api/admin/events", function($db) {
     Response::json(200, "All events retrived", $events);
 });
 
+    // delete users
+$router->delete("/api/admin/users/delete", function($db) {
+    $auth = AdminMiddleware::requireAdmin();
+
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    if(!isset($input["id"])) {
+        Response::json(400, "User ID required");
+    }
+
+    $userId = $input["id"];
+
+    // prevent admin from deleting themselves
+    if ($auth->sub == $userId) {
+        Response::json(403, "Admin cannot their own account");
+    }
+
+    // Delete user
+    $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
+    $stmt->bindParam(":id", $userId);
+
+    if ($stmt->execute()) {
+        Response::json(200, "User deleted successfully");
+    }
+
+    Response::json(500, "Failed to delete user");
+});
+
 
 
 // RUN ROUTER

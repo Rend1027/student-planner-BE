@@ -38,14 +38,24 @@ class Router
 
         // Normalize URL (remove trailing slash)
         if ($uri !== "/" && substr($uri, -1) === "/") {
-        $uri = rtrim($uri, "/");
+            $uri = rtrim($uri, "/");
         }
 
         if (isset($this->routes[$method][$uri])) {
-        [$controllerClass, $methodName] = $this->routes[$method][$uri];
 
-        $controller = new $controllerClass($db);
-        return $controller->$methodName();
+            $handler = $this->routes[$method][$uri];
+
+            // if handler is a closure
+            if ($handler instanceof Closure) {
+                return $handler($db);
+            }
+
+            // otherwise it is a controller array: [ClassName::class, 'method']
+            if (is_array($handler)) {
+                [$controllerClass, $methodName] = $handler;
+                $controller = new $controllerClass($db);
+                return $controller->$methodName();
+            }
         }
 
         Response::json(404, "Route not found: $method $uri");
