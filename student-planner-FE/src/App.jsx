@@ -3,6 +3,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import RegisterPage from "./pages/RegisterPage";   // 👈 new
+import AdminDashboard from "./pages/AdminDashboard";
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, loading } = useAuth();
@@ -10,6 +11,7 @@ function ProtectedRoute({ children }) {
   if (loading) {
     return <div style={{ padding: "2rem", textAlign: "center" }}>Loading...</div>;
   }
+
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -34,6 +36,7 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/admin" element={<AdminDashboard />} />
         </Routes>
       </AuthProvider>
     </BrowserRouter>

@@ -18,7 +18,7 @@ export function AuthProvider({ children }) {
     const token = getToken();
     if (token) {
       // We don’t have a “me” endpoint, so just mark as “logged in”
-      setUser({}); 
+      setUser({});
     }
     setLoading(false);
   }, []);
@@ -28,7 +28,12 @@ export function AuthProvider({ children }) {
     try {
       const data = await apiLogin(email, password); // { user, token }
       setUser(data.user || {});
-      navigate("/dashboard");
+
+      if (data.user.role === "admin") {
+        window.location.href = "/admin";
+      } else {
+        navigate("/dashboard");
+      }
     } catch (err) {
       throw err; // let the page show the message
     } finally {

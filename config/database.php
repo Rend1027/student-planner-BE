@@ -1,27 +1,25 @@
 <?php
 class Database {
-    private $host = "localhost";
-    private $db_name = "student_planner";
-    private $username = "root";   // change if needed
-    private $password = "zianpassword";       // change if needed
-    public $conn;
+
+    public function __construct() {
+        // Load .env variables
+        $env = parse_ini_file(__DIR__ . "/../.env");
+        $this->host = $env["DB_HOST"];
+        $this->db_name = $env["DB_NAME"];
+        $this->username = $env["DB_USER"];
+        $this->password = $env["DB_PASS"];
+    }
 
     public function connect() {
-        $this->conn = null;
-
         try {
-            $dsn = "mysql:host=" . $this->host . ";dbname=" . $this->db_name;
-            $options = [
-                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
-            ];
-
-            $this->conn = new PDO($dsn, $this->username, $this->password, $options);
+            $dsn = "mysql:host={$this->host};dbname={$this->db_name}";
+            $conn = new PDO($dsn, $this->username, $this->password);
+            $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            return $conn;
 
         } catch (PDOException $e) {
             echo "Database connection error: " . $e->getMessage();
+            return null;
         }
-
-        return $this->conn;
     }
 }
