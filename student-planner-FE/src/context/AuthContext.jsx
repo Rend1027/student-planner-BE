@@ -4,53 +4,67 @@ import {
   apiLogin,
   clearToken,
   getToken,
+  saveToken,
 } from "../api/client";
 
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null);   // we’ll store basic user info here
+  const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // On first load, just check if a token exists
+  // Load user + token on first load
   useEffect(() => {
     const token = getToken();
-    if (token) {
-      // We don’t have a “me” endpoint, so just mark as “logged in”
-      setUser({});
+    const storedUser = localStorage.getItem("user");
+
+    if (token && storedUser) {
+      setUser(JSON.parse(storedUser));
     }
+
     setLoading(false);
   }, []);
 
+  // ---- LOGIN ----
   async function login(email, password) {
-    setLoading(true);
     try {
-      const data = await apiLogin(email, password); // { user, token }
-      setUser(data.user || {});
+      setLoading(true);
 
+      // Backend returns: { user, token }
+      const data = await apiLogin(email, password);
+
+      // Save token + user
+      saveToken(data.token);
+      localStorage.setItem("user", JSON.stringify(data.user));
+      setUser(data.user);
+
+      // Redirect based on role
       if (data.user.role === "admin") {
-        window.location.href = "/admin";
+        navigate("/admin");
       } else {
         navigate("/dashboard");
       }
+
     } catch (err) {
-      throw err; // let the page show the message
+      throw err;
     } finally {
       setLoading(false);
     }
   }
 
+  // ---- LOGOUT ----
   function logout() {
     clearToken();
+    localStorage.removeItem("user");
     setUser(null);
     navigate("/login");
   }
 
   const value = {
     user,
-    isAuthenticated: !!user && !!getToken(),
     loading,
+    isAuthenticated: !!user,
     login,
     logout,
   };
