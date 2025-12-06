@@ -76,7 +76,7 @@ $router->delete("/api/admin/users/delete", function($db) {
 
     // Delete user
     $stmt = $db->prepare("DELETE FROM users WHERE id = :id");
-    $stmt->bindParam(":id", $userId);
+    $stmt->bindParam(":id", $userId, PDO::PARAM_INT);
 
     if ($stmt->execute()) {
         Response::json(200, "User deleted successfully");

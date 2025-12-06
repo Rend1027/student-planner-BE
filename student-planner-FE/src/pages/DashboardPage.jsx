@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import {
-  apiGetEvents,
-  apiCreateEvent,
-  apiUpdateEvent,
-  apiDeleteEvent,
+  getEvents as apiGetEvents,
+  createEvent as apiCreateEvent,
+  updateEvent as apiUpdateEvent,
+  deleteEvent as apiDeleteEvent,
 } from "../api/client";
 
 const DAY_LABELS = {
@@ -83,7 +83,7 @@ function isTomorrow(dateStr) {
   const d = new Date(dateStr);
   const diffDays = Math.round(
     (d.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0)) /
-      (1000 * 60 * 60 * 24)
+    (1000 * 60 * 60 * 24)
   );
   return diffDays === 1;
 }
@@ -198,8 +198,8 @@ function DashboardPage() {
     activeTab === "schedule"
       ? "Here’s what your day looks like."
       : activeTab === "tasks"
-      ? "Capture the tasks that keep you moving."
-      : "Manage your account and preferences.";
+        ? "Capture the tasks that keep you moving."
+        : "Manage your account and preferences.";
 
   useEffect(() => {
     async function loadEvents() {
@@ -222,16 +222,16 @@ function DashboardPage() {
   const upcomingEvent =
     events && events.length
       ? events
-          .filter(
-            (ev) =>
-              ev.type === "event" && ev.date && ev.start_time
-          )
-          .map((ev) => ({
-            ...ev,
-            _minsUntil: minutesUntil(ev.start_time, ev.date),
-          }))
-          .filter((ev) => ev._minsUntil > 0)
-          .sort((a, b) => a._minsUntil - b._minsUntil)[0] || null
+        .filter(
+          (ev) =>
+            ev.type === "event" && ev.date && ev.start_time
+        )
+        .map((ev) => ({
+          ...ev,
+          _minsUntil: minutesUntil(ev.start_time, ev.date),
+        }))
+        .filter((ev) => ev._minsUntil > 0)
+        .sort((a, b) => a._minsUntil - b._minsUntil)[0] || null
       : null;
 
   // sorted list for display
@@ -305,8 +305,8 @@ function DashboardPage() {
     const dayFromDate =
       form.date
         ? ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
-            new Date(form.date).getDay()
-          ]
+        new Date(form.date).getDay()
+        ]
         : null;
 
     const payload = {
@@ -393,12 +393,11 @@ function DashboardPage() {
 
           let dateLine = "";
           if (ev.type === "class") {
-            dateLine = `${
-              DAY_LABELS[ev.day_of_week] ||
+            dateLine = `${DAY_LABELS[ev.day_of_week] ||
               ev.day_of_week?.toUpperCase()
-            } · ${formatTime(ev.start_time)} – ${formatTime(
-              ev.end_time
-            )}`;
+              } · ${formatTime(ev.start_time)} – ${formatTime(
+                ev.end_time
+              )}`;
           } else {
             let prefix = formatDate(ev.date);
             if (isTodayEvent) prefix = "Today";
@@ -416,9 +415,8 @@ function DashboardPage() {
           return (
             <li
               key={ev.id}
-              className={`event-card event-${ev.type} ${
-                past ? "event-past" : ""
-              }`}
+              className={`event-card event-${ev.type} ${past ? "event-past" : ""
+                }`}
             >
               <div className="event-main">
                 {isUpcoming && !past && upcomingEvent && (
@@ -579,25 +577,22 @@ function DashboardPage() {
 
         <nav className="bottom-nav">
           <button
-            className={`nav-item ${
-              activeTab === "schedule" ? "nav-item-active" : ""
-            }`}
+            className={`nav-item ${activeTab === "schedule" ? "nav-item-active" : ""
+              }`}
             onClick={() => setActiveTab("schedule")}
           >
             Schedule
           </button>
           <button
-            className={`nav-item ${
-              activeTab === "tasks" ? "nav-item-active" : ""
-            }`}
+            className={`nav-item ${activeTab === "tasks" ? "nav-item-active" : ""
+              }`}
             onClick={() => setActiveTab("tasks")}
           >
             Tasks
           </button>
           <button
-            className={`nav-item ${
-              activeTab === "profile" ? "nav-item-active" : ""
-            }`}
+            className={`nav-item ${activeTab === "profile" ? "nav-item-active" : ""
+              }`}
             onClick={() => setActiveTab("profile")}
           >
             Profile
@@ -710,8 +705,8 @@ function DashboardPage() {
                   {formLoading
                     ? "Saving..."
                     : editingEvent
-                    ? "Save changes"
-                    : "Create event"}
+                      ? "Save changes"
+                      : "Create event"}
                 </button>
               </form>
             </div>

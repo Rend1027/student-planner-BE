@@ -1,71 +1,37 @@
 import React, { useEffect, useState } from "react";
-
-const API_URL = "http://localhost:8000";
+import { getAllUsers, getAllEvents, adminDeleteUser } from "../api/client";
 
 const AdminDashboard = () => {
-
     const [users, setUsers] = useState([]);
     const [eventCount, setEventCount] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    const token = localStorage.getItem("token");
-
-    // fetch all users
-    const fetchUsers = async () => {
-        const res = await fetch(`${API_URL}/api/admin/users`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        const data = await res.json();
-        if (data.success) {
-            setUsers(data.data);
+    useEffect(() => {
+        async function load() {
+            const users = await getAllUsers();
+            const events = await getAllEvents();
+            setUsers(users);
+            setEventCount(events.length);
+            setLoading(false);
         }
-    }
+        load();
+    }, []);
 
-    // Fetch total events 
-    const fetchEventCount = async () => {
-        const res = await fetch(`${API_URL}/api/admin/events`, {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-        });
-
-        const data = await res.json();
-        if (data.success) {
-            setEventCount(data.data.length);
-        }
-    }
-
-    // Delete user
-    const deleteUser = async (id) => {
+    async function deleteUser(id) {
         if (!window.confirm("Delete this user?")) return;
 
-        const res = await fetch(`${API_URL}/api/admin/users/delete`, {
-            method: 'DELETE',
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ id })
-        });
-
-        const data = await res.json();
-
-        if (data.success) {
-            setUsers(users.filter((u) => u.id !== id));
+        try {
+            await adminDeleteUser(id);
             alert("User deleted successfully");
-        } else {
+
+            // remove deleted user from UI
+            setUsers((prev) => prev.filter((u) => u.id !== id));
+
+        } catch (err) {
+            console.error("Delete failed:", err);
             alert("Failed to delete user");
         }
-    };
-
-    useEffect(() => {
-        Promise.all([fetchUsers(), fetchEventCount()]).then(() => {
-            setLoading(false);
-        });
-    }, []);
+    }
 
     if (loading) return <p>Loading dashboard...</p>
 

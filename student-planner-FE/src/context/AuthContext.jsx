@@ -1,13 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  apiLogin,
+  login as apiLogin,
   clearToken,
   getToken,
-  saveToken,
 } from "../api/client";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "./AuthContext";
+
 
 const AuthContext = createContext(null);
 
@@ -19,10 +18,21 @@ export function AuthProvider({ children }) {
   // Load user + token on first load
   useEffect(() => {
     const token = getToken();
-    const storedUser = localStorage.getItem("user");
+
+    const raw = localStorage.getItem("user");
+    let storedUser = null;
+
+    try {
+      if (raw && raw !== "undefined") {
+        storedUser = JSON.parse(raw);
+      }
+    } catch (e) {
+      console.error("Invalid user in storage, clearing it...");
+      localStorage.removeItem("user");
+    }
 
     if (token && storedUser) {
-      setUser(JSON.parse(storedUser));
+      setUser(storedUser);
     }
 
     setLoading(false);
@@ -33,16 +43,15 @@ export function AuthProvider({ children }) {
     try {
       setLoading(true);
 
-      // Backend returns: { user, token }
-      const data = await apiLogin(email, password);
+      // Backend returns ONLY the user object (token already stored)
+      const user = await apiLogin(email, password);
+      console.log("LOGIN RESPONSE:", user);
 
-      // Save token + user
-      saveToken(data.token);
-      localStorage.setItem("user", JSON.stringify(data.user));
-      setUser(data.user);
+      localStorage.setItem("user", JSON.stringify(user));
+      setUser(user);
 
       // Redirect based on role
-      if (data.user.role === "admin") {
+      if (user.role === "admin") {
         navigate("/admin");
       } else {
         navigate("/dashboard");

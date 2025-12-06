@@ -76,6 +76,13 @@ export function deleteEvent(id) {
   });
 }
 
+export function updateEvent(event) {
+  return apiFetch("/events/update", {
+    method: "PUT",
+    body: JSON.stringify(event),
+  });
+}
+
 // ---- ADMIN ----
 export async function getAllUsers() {
   const res = await apiFetch("/admin/users", { method: "GET" });
