@@ -6,6 +6,8 @@ import {
   getToken,
   saveToken,
 } from "../api/client";
+import { Navigate } from "react-router-dom";
+import { useAuth } from "./AuthContext";
 
 const AuthContext = createContext(null);
 
@@ -76,4 +78,15 @@ export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
+}
+
+export function RequireAdmin({ children }) {
+  const { user, loading } = useAuth();
+
+  if (loading) return <p>Loading...</p>;
+
+  if (!user) return <Navigate to="/login" replace />;
+  if (user.role !== "admin") return <Navigate to="/dashboard" replace />;
+
+  return children;
 }
