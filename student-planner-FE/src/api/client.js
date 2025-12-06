@@ -23,7 +23,7 @@ async function request(path, options = {}) {
     headers["Content-Type"] = "application/json";
   }
 
-  // 🔥 Attach JWT for ALL requests
+  //  Attach JWT for ALL requests
   const token = getToken();
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -61,6 +61,8 @@ export async function apiLogin(email, password) {
     method: "POST",
     body: JSON.stringify({ email, password }),
   });
+      // Adding this get update on console
+    console.log("LOGIN RESPONSE", response);
 
   // Backend: { success, message, data: { user, token } }
   const token = response.data?.token;

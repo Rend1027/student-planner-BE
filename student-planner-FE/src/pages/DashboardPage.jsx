@@ -22,8 +22,7 @@ const TYPE_META = {
   class: { label: "Class", emoji: "📚" },
 };
 
-// For sorting classes by weekday
-const DAY_ORDER_SORT = {
+const DAY_ORDER = {
   mon: 1,
   tue: 2,
   wed: 3,
@@ -66,10 +65,20 @@ function formatDate(dateStr) {
   });
 }
 
+/**
+ * Parse "YYYY-MM-DD" as a LOCAL date (avoid UTC shift)
+ */
+function parseLocalDate(dateStr) {
+  if (!dateStr) return null;
+  const [y, m, d] = dateStr.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
+
 function isToday(dateStr) {
   if (!dateStr) return false;
   const today = new Date();
-  const d = new Date(dateStr);
+  const d = parseLocalDate(dateStr);
+  if (!d) return false;
   return (
     d.getFullYear() === today.getFullYear() &&
     d.getMonth() === today.getMonth() &&
@@ -80,11 +89,24 @@ function isToday(dateStr) {
 function isTomorrow(dateStr) {
   if (!dateStr) return false;
   const today = new Date();
-  const d = new Date(dateStr);
-  const diffDays = Math.round(
-    (d.setHours(0, 0, 0, 0) - today.setHours(0, 0, 0, 0)) /
-      (1000 * 60 * 60 * 24)
+  const d = parseLocalDate(dateStr);
+  if (!d) return false;
+
+  const todayMid = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate()
   );
+  const targetMid = new Date(
+    d.getFullYear(),
+    d.getMonth(),
+    d.getDate()
+  );
+
+  const diffDays =
+    (targetMid.getTime() - todayMid.getTime()) /
+    (1000 * 60 * 60 * 24);
+
   return diffDays === 1;
 }
 
@@ -92,8 +114,8 @@ function minutesUntil(startTime, dateStr) {
   if (!startTime || !dateStr) return Infinity;
   const now = new Date();
 
-  const [y, m, d] = dateStr.split("-");
-  const target = new Date(Number(y), Number(m) - 1, Number(d));
+  const target = parseLocalDate(dateStr);
+  if (!target) return Infinity;
 
   const [h, min] = startTime.split(":");
   target.setHours(Number(h), Number(min), 0, 0);
@@ -104,8 +126,8 @@ function minutesUntil(startTime, dateStr) {
 
 function isEventPast(ev) {
   if (!ev?.date || !ev?.end_time) return false;
-  const [y, m, d] = ev.date.split("-");
-  const end = new Date(Number(y), Number(m) - 1, Number(d));
+  const end = parseLocalDate(ev.date);
+  if (!end) return false;
 
   const [h, min] = ev.end_time.split(":");
   end.setHours(Number(h), Number(min), 0, 0);
@@ -123,36 +145,37 @@ function formatNextUpShort(mins) {
   return "Next up";
 }
 
-// Helper to build a Date for dated events
-function getEventDateTime(ev) {
-  if (ev.type === "event" && ev.date) {
-    const time = ev.start_time || "00:00";
-    return new Date(`${ev.date}T${time}`);
-  }
-  return null;
-}
+/** Simple sort: dated events by date+time, classes by weekday+time */
+function sortEvents(events) {
+  return [...events].sort((a, b) => {
+    const hasDateA = !!a.date;
+    const hasDateB = !!b.date;
 
-// Sorting logic: dated events → by datetime, classes → by weekday then time
-function sortEventsForDisplay(a, b) {
-  const da = getEventDateTime(a);
-  const db = getEventDateTime(b);
+    if (hasDateA && hasDateB) {
+      if (a.date !== b.date) {
+        return a.date.localeCompare(b.date);
+      }
+      if (a.start_time && b.start_time) {
+        return a.start_time.localeCompare(b.start_time);
+      }
+      return 0;
+    }
 
-  // both properly dated events
-  if (da && db) return da - db;
+    // Dated before undated
+    if (hasDateA && !hasDateB) return -1;
+    if (!hasDateA && hasDateB) return 1;
 
-  // one is dated, one isn't → show dated first
-  if (da && !db) return -1;
-  if (!da && db) return 1;
+    // Classes / undated: order by weekday then time
+    const dayA = DAY_ORDER[a.day_of_week] || 99;
+    const dayB = DAY_ORDER[b.day_of_week] || 99;
+    if (dayA !== dayB) return dayA - dayB;
 
-  // both are undated (likely classes) → weekday then time
-  const dayA = DAY_ORDER_SORT[a.day_of_week] || 99;
-  const dayB = DAY_ORDER_SORT[b.day_of_week] || 99;
-  if (dayA !== dayB) return dayA - dayB;
+    if (a.start_time && b.start_time) {
+      return a.start_time.localeCompare(b.start_time);
+    }
 
-  if (a.start_time && b.start_time) {
-    return a.start_time.localeCompare(b.start_time);
-  }
-  return 0;
+    return 0;
+  });
 }
 
 function DashboardPage() {
@@ -177,7 +200,7 @@ function DashboardPage() {
     type: "event",
   });
 
-  // Tabs: schedule / tasks / profile
+  // NEW: bottom tabs
   const [activeTab, setActiveTab] = useState("schedule");
 
   const greeting = getGreeting();
@@ -218,7 +241,7 @@ function DashboardPage() {
     loadEvents();
   }, []);
 
-  // soonest upcoming dated event for "Next up" label
+  // soonest upcoming dated event for "Next up" pill
   const upcomingEvent =
     events && events.length
       ? events
@@ -234,8 +257,7 @@ function DashboardPage() {
           .sort((a, b) => a._minsUntil - b._minsUntil)[0] || null
       : null;
 
-  // sorted list for display
-  const sortedEvents = [...events].sort(sortEventsForDisplay);
+  const sortedEvents = sortEvents(events);
 
   function openCreateForm() {
     setEditingEvent(null);
@@ -302,13 +324,6 @@ function DashboardPage() {
       return;
     }
 
-    const dayFromDate =
-      form.date
-        ? ["sun", "mon", "tue", "wed", "thu", "fri", "sat"][
-            new Date(form.date).getDay()
-          ]
-        : null;
-
     const payload = {
       title: form.title,
       description: form.description || null,
@@ -316,8 +331,7 @@ function DashboardPage() {
       end_time: form.end_time,
       type: form.type,
       date: form.type === "event" ? form.date : null,
-      day_of_week:
-        form.type === "class" ? form.day_of_week : dayFromDate,
+      day_of_week: form.type === "class" ? form.day_of_week : null,
     };
 
     try {
@@ -358,7 +372,8 @@ function DashboardPage() {
     }
   }
 
-  // Tab renderers
+  // --------- TAB RENDERERS ----------
+
   const renderScheduleTab = () => {
     if (loading) {
       return <p className="muted">Loading your schedule...</p>;
@@ -387,7 +402,9 @@ function DashboardPage() {
             ev.type === "event" && isToday(ev.date);
           const isTomorrowEvent =
             ev.type === "event" && isTomorrow(ev.date);
-          const past = ev.type === "event" && isEventPast(ev);
+          const past =
+            ev.type === "event" && isEventPast(ev);
+
           const isUpcoming =
             upcomingEvent && upcomingEvent.id === ev.id;
 
@@ -421,17 +438,6 @@ function DashboardPage() {
               }`}
             >
               <div className="event-main">
-                {isUpcoming && !past && upcomingEvent && (
-                  <div className="event-nextup-label">
-                    <span className="tag-nextup">
-                      {formatNextUpShort(
-                        upcomingEvent._minsUntil
-                      )}{" "}
-                      ⏰
-                    </span>
-                  </div>
-                )}
-
                 <div className="event-title-row">
                   <div className="event-title-main">
                     <span className="event-type-pill">
@@ -442,6 +448,17 @@ function DashboardPage() {
                     </span>
                     <h3 className="event-title">{ev.title}</h3>
                   </div>
+
+                  {isUpcoming &&
+                    !past &&
+                    upcomingEvent && (
+                      <span className="tag-nextup">
+                        {formatNextUpShort(
+                          upcomingEvent._minsUntil
+                        )}{" "}
+                        ⏰
+                      </span>
+                    )}
                 </div>
 
                 {ev.description && (
@@ -548,9 +565,6 @@ function DashboardPage() {
               </p>
             </div>
           </div>
-          <button className="logout-btn" onClick={logout}>
-            Logout
-          </button>
         </header>
 
         <section className="greeting-strip">
@@ -611,8 +625,13 @@ function DashboardPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sheet-header">
-                <h2>{editingEvent ? "Edit Event" : "New Event"}</h2>
-                <button className="sheet-close" onClick={closeForm}>
+                <h2>
+                  {editingEvent ? "Edit Event" : "New Event"}
+                </h2>
+                <button
+                  className="sheet-close"
+                  onClick={closeForm}
+                >
                   ✕
                 </button>
               </div>
@@ -645,7 +664,9 @@ function DashboardPage() {
                     value={form.type}
                     onChange={handleChange}
                   >
-                    <option value="event">Event / Appointment</option>
+                    <option value="event">
+                      Event / Appointment
+                    </option>
                     <option value="class">Class</option>
                   </select>
                 </label>
