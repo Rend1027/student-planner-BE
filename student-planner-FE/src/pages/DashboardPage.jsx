@@ -22,8 +22,8 @@ const DAY_LABELS = {
 };
 
 const TYPE_META = {
-  event: { label: "Event", emoji: "📅" },
-  class: { label: "Class", emoji: "📚" },
+  event: { label: "Event", emoji: "🗓️" },
+  class: { label: "Class", emoji: "🎓" },
 };
 
 const DAY_ORDER = {
@@ -38,10 +38,10 @@ const DAY_ORDER = {
 
 function getGreeting() {
   const hour = new Date().getHours();
-  if (hour < 5) return "Good night";
-  if (hour < 12) return "Good morning";
-  if (hour < 18) return "Good afternoon";
-  return "Good evening";
+  if (hour < 5) return "Good night ⋆.˚ ☾⭒.˚";
+  if (hour < 12) return "Good morning 🫧🌤️☁";
+  if (hour < 18) return "Good afternoon 🌤️";
+  return "Good evening 🌓";
 }
 
 function formatTime(timeStr) {
@@ -524,7 +524,7 @@ function DashboardPage() {
             )} – ${formatTime(ev.end_time)}`;
 
             if (isTodayEvent && !past) {
-              dateLine += " 🔥";
+              dateLine += " ";
             }
           }
 
@@ -625,8 +625,8 @@ function DashboardPage() {
                 <div className="event-title-row">
                   <div className="event-title-main">
                     <span className="event-type-pill">
-                      <span className="event-type-emoji">✅</span>
-                      TASK
+                      <span className="event-type-emoji">☑️</span>
+                      
                     </span>
                     <h3 className="event-title">{task.title}</h3>
                   </div>
@@ -722,7 +722,7 @@ function DashboardPage() {
 
         <section className="greeting-strip">
           <p className="greeting-title">
-            {greeting}, <span>{displayName}</span> 👋
+            {greeting}, <span>{displayName}</span> 
           </p>
           <p className="greeting-sub">{greetingSub}</p>
         </section>
