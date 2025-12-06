@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { apiRegister } from "../api/client";
+import { register as apiRegister } from "../api/client";
 
 function RegisterPage() {
   const navigate = useNavigate();
   const [username, setUsername] = useState("");
-  const [email, setEmail]     = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError]     = useState("");
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [submitting, setSubmitting] = useState(false);
 

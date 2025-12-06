@@ -52,7 +52,7 @@ class User {
         $stmt->bindParam(":email", $email);
         $stmt->execute();
 
-        return $stmt->fetch();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     //VERIFY CREDENTIALS
