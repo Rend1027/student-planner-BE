@@ -6,7 +6,9 @@ require_once __DIR__ . "/../controllers/AuthController.php";
 require_once __DIR__ . "/../vendor/autoload.php";
 require_once __DIR__ . "/../middleware/AuthMiddleware.php";
 require_once __DIR__ . '/../controllers/EventController.php';
+require_once __DIR__ . '/../controllers/TaskController.php';
 require_once __DIR__ . "/../middleware/AdminMiddleware.php";
+require_once __DIR__ . '/../controllers/NotificationController.php';
 
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Headers: *");
@@ -31,10 +33,42 @@ $router->get("/api/events", [EventController::class, "getAll"]);
 $router->put("/api/events/update", [EventController::class, "update"]);
 $router->delete("/api/events/delete", [EventController::class, "delete"]);
 
-// (Optional placeholder for tasks)
-$router->post("/api/tasks/create", function($db) {
-    $auth = AuthMiddleware::requireToken(); 
+// TASKS (To-Do List)
+// TASKS
+$router->get("/api/tasks", function ($db) {
+    $controller = new TaskController($db);
+    $controller->getAll();
 });
+
+$router->post("/api/tasks/create", function ($db) {
+    $controller = new TaskController($db);
+    $controller->create();
+});
+
+$router->put("/api/tasks/update", function ($db) {
+    $controller = new TaskController($db);
+    $controller->update();
+});
+
+$router->delete("/api/tasks/delete", function ($db) {
+    $controller = new TaskController($db);
+    $controller->delete();
+});
+
+// NOTIFICATIONS ROUTES
+$router->get('/api/notifications', function ($db) {
+    AuthMiddleware::requireAuth();
+    $userId = AuthMiddleware::getUserId();
+    NotificationController::getAll($db, $userId);
+});
+
+$router->put('/api/notifications/read', function ($db) {
+    AuthMiddleware::requireAuth();
+    $userId = AuthMiddleware::getUserId();
+    NotificationController::markRead($db, $userId);
+});
+
+
 
 // Delete Event route
 $router->delete("/api/events/delete", [EventController::class, "delete"]);

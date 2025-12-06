@@ -458,6 +458,7 @@ button {
   background: rgba(139, 92, 246, 0.18);
   color: var(--text-main);
   box-shadow: 0 0 0 1px rgba(139, 92, 246, 0.5);
+  padding: 0.45rem 0.5rem;
 }
 
 /* Sheet / modal ---------------------------------------- */
@@ -636,6 +637,7 @@ button {
   margin-top: 1.2rem;
   margin-left: auto;
   margin-right: auto;
+  margin-bottom: 0.5rem; 
   width: 100%;
   max-width: 260px;
   border-radius: 999px;
@@ -757,8 +759,10 @@ button {
 .mobile-header,
 .greeting-strip,
 .mobile-main {
-  width: 100%;
-  max-width: 540px;          /* column width on desktop/tablet */
+  margin-top: 1.2rem;
+
+  
+  max-width: 420px;          /* column width on desktop/tablet */
   margin-left: auto;
   margin-right: auto;
 }
@@ -769,7 +773,19 @@ button {
   .greeting-strip,
   .mobile-main {
     max-width: 100%;
+
   }
 }
 
+.section-title {
+  margin-top: 1.4rem;
+  margin-bottom: 0.4rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
 
+.panel-shell {
+  margin-top: 1rem; /* NEW */
+}

@@ -5,6 +5,10 @@ import {
   apiCreateEvent,
   apiUpdateEvent,
   apiDeleteEvent,
+  apiGetTasks,
+  apiCreateTask,
+  apiUpdateTask,
+  apiDeleteTask,
 } from "../api/client";
 
 const DAY_LABELS = {
@@ -65,9 +69,6 @@ function formatDate(dateStr) {
   });
 }
 
-/**
- * Parse "YYYY-MM-DD" as a LOCAL date (avoid UTC shift)
- */
 function parseLocalDate(dateStr) {
   if (!dateStr) return null;
   const [y, m, d] = dateStr.split("-").map(Number);
@@ -97,15 +98,10 @@ function isTomorrow(dateStr) {
     today.getMonth(),
     today.getDate()
   );
-  const targetMid = new Date(
-    d.getFullYear(),
-    d.getMonth(),
-    d.getDate()
-  );
+  const targetMid = new Date(d.getFullYear(), d.getMonth(), d.getDate());
 
   const diffDays =
-    (targetMid.getTime() - todayMid.getTime()) /
-    (1000 * 60 * 60 * 24);
+    (targetMid.getTime() - todayMid.getTime()) / (1000 * 60 * 60 * 24);
 
   return diffDays === 1;
 }
@@ -120,12 +116,15 @@ function minutesUntil(startTime, dateStr) {
   const [h, min] = startTime.split(":");
   target.setHours(Number(h), Number(min), 0, 0);
 
-  const diffMs = target - now;
-  return Math.floor(diffMs / 60000);
+  return Math.floor((target.getTime() - now.getTime()) / (1000 * 60));
 }
 
 function isEventPast(ev) {
-  if (!ev?.date || !ev?.end_time) return false;
+  if (ev.type === "class") {
+    return false;
+  }
+  if (!ev.date || !ev.end_time) return false;
+
   const end = parseLocalDate(ev.date);
   if (!end) return false;
 
@@ -145,7 +144,6 @@ function formatNextUpShort(mins) {
   return "Next up";
 }
 
-/** Simple sort: dated events by date+time, classes by weekday+time */
 function sortEvents(events) {
   return [...events].sort((a, b) => {
     const hasDateA = !!a.date;
@@ -161,11 +159,9 @@ function sortEvents(events) {
       return 0;
     }
 
-    // Dated before undated
     if (hasDateA && !hasDateB) return -1;
     if (!hasDateA && hasDateB) return 1;
 
-    // Classes / undated: order by weekday then time
     const dayA = DAY_ORDER[a.day_of_week] || 99;
     const dayB = DAY_ORDER[b.day_of_week] || 99;
     if (dayA !== dayB) return dayA - dayB;
@@ -200,7 +196,20 @@ function DashboardPage() {
     type: "event",
   });
 
-  // NEW: bottom tabs
+  // TASKS STATE
+  const [tasks, setTasks] = useState([]);
+  const [tasksLoading, setTasksLoading] = useState(false);
+
+  const [showTaskForm, setShowTaskForm] = useState(false);
+  const [taskFormLoading, setTaskFormLoading] = useState(false);
+  const [editingTask, setEditingTask] = useState(null);
+  const [taskForm, setTaskForm] = useState({
+    title: "",
+    description: "",
+    due_date: "",
+    due_time: "",
+  });
+
   const [activeTab, setActiveTab] = useState("schedule");
 
   const greeting = getGreeting();
@@ -238,17 +247,26 @@ function DashboardPage() {
       }
     }
 
+    async function loadTasks() {
+      setTasksLoading(true);
+      try {
+        const data = await apiGetTasks();
+        setTasks(data || []);
+      } catch (err) {
+        console.error("Failed to load tasks", err);
+      } finally {
+        setTasksLoading(false);
+      }
+    }
+
     loadEvents();
+    loadTasks();
   }, []);
 
-  // soonest upcoming dated event for "Next up" pill
   const upcomingEvent =
     events && events.length
       ? events
-          .filter(
-            (ev) =>
-              ev.type === "event" && ev.date && ev.start_time
-          )
+          .filter((ev) => ev.type === "event" && ev.date && ev.start_time)
           .map((ev) => ({
             ...ev,
             _minsUntil: minutesUntil(ev.start_time, ev.date),
@@ -259,6 +277,7 @@ function DashboardPage() {
 
   const sortedEvents = sortEvents(events);
 
+  // EVENT FORM HELPERS
   function openCreateForm() {
     setEditingEvent(null);
     setForm({
@@ -372,8 +391,89 @@ function DashboardPage() {
     }
   }
 
-  // --------- TAB RENDERERS ----------
+  // TASK FORM HELPERS
+  function openCreateTaskForm() {
+    setEditingTask(null);
+    setTaskForm({
+      title: "",
+      description: "",
+      due_date: "",
+      due_time: "",
+    });
+    setShowTaskForm(true);
+  }
 
+  function openEditTaskForm(task) {
+    setEditingTask(task);
+    setTaskForm({
+      title: task.title || "",
+      description: task.description || "",
+      due_date: task.due_date || "",
+      due_time: task.due_time || "",
+    });
+    setShowTaskForm(true);
+  }
+
+  function closeTaskForm() {
+    setShowTaskForm(false);
+    setEditingTask(null);
+  }
+
+  function handleTaskFormChange(e) {
+    const { name, value } = e.target;
+    setTaskForm((prev) => ({ ...prev, [name]: value }));
+  }
+
+  async function handleTaskSubmit(e) {
+    e.preventDefault();
+    setTaskFormLoading(true);
+
+    if (!taskForm.title) {
+      alert("Title is required");
+      setTaskFormLoading(false);
+      return;
+    }
+
+    const payload = {
+      title: taskForm.title,
+      description: taskForm.description || null,
+      due_date: taskForm.due_date || null,
+      due_time: taskForm.due_time || null,
+      alarm_time: null,
+    };
+
+    try {
+      if (editingTask) {
+        await apiUpdateTask({ id: editingTask.id, ...payload });
+      } else {
+        await apiCreateTask(payload);
+      }
+
+      const data = await apiGetTasks();
+      setTasks(data || []);
+      closeTaskForm();
+    } catch (err) {
+      console.error("Failed to save task", err);
+      alert("Failed to save task");
+    } finally {
+      setTaskFormLoading(false);
+    }
+  }
+
+  async function handleTaskDelete(task) {
+    const confirmed = window.confirm(`Delete task "${task.title}"?`);
+    if (!confirmed) return;
+
+    try {
+      await apiDeleteTask(task.id);
+      setTasks((prev) => prev.filter((t) => t.id !== task.id));
+    } catch (err) {
+      console.error("Failed to delete task", err);
+      alert("Failed to delete task");
+    }
+  }
+
+  // TAB RENDERERS
   const renderScheduleTab = () => {
     if (loading) {
       return <p className="muted">Loading your schedule...</p>;
@@ -398,12 +498,10 @@ function DashboardPage() {
             emoji: "•",
           };
 
-          const isTodayEvent =
-            ev.type === "event" && isToday(ev.date);
+          const isTodayEvent = ev.type === "event" && isToday(ev.date);
           const isTomorrowEvent =
             ev.type === "event" && isTomorrow(ev.date);
-          const past =
-            ev.type === "event" && isEventPast(ev);
+          const past = ev.type === "event" && isEventPast(ev);
 
           const isUpcoming =
             upcomingEvent && upcomingEvent.id === ev.id;
@@ -449,16 +547,14 @@ function DashboardPage() {
                     <h3 className="event-title">{ev.title}</h3>
                   </div>
 
-                  {isUpcoming &&
-                    !past &&
-                    upcomingEvent && (
-                      <span className="tag-nextup">
-                        {formatNextUpShort(
-                          upcomingEvent._minsUntil
-                        )}{" "}
-                        ⏰
-                      </span>
-                    )}
+                  {isUpcoming && !past && upcomingEvent && (
+                    <span className="tag-nextup">
+                      {formatNextUpShort(
+                        upcomingEvent._minsUntil
+                      )}{" "}
+                      ⏰
+                    </span>
+                  )}
                 </div>
 
                 {ev.description && (
@@ -496,20 +592,79 @@ function DashboardPage() {
     );
   };
 
-  const renderTasksTab = () => (
-    <section className="panel-shell">
-      <h2 className="panel-title">Tasks (coming soon)</h2>
-      <p className="panel-subtext">
-        Soon you&apos;ll be able to track to-dos right next to your
-        classes and events.
-      </p>
-      <div className="chip-row">
-        <span className="chip soft">School</span>
-        <span className="chip soft">Work</span>
-        <span className="chip soft">Personal</span>
-      </div>
-    </section>
-  );
+  const renderTasksTab = () => {
+    if (tasksLoading) {
+      return (
+        <section className="panel-shell">
+          <h2 className="panel-title">Tasks</h2>
+          <p className="muted">Loading your tasks...</p>
+        </section>
+      );
+    }
+
+    if (!tasks || tasks.length === 0) {
+      return (
+        <section className="panel-shell">
+          <h2 className="panel-title">Tasks</h2>
+          <p className="panel-subtext">
+            No tasks yet. Tap the + button to add your first task.
+          </p>
+        </section>
+      );
+    }
+
+    return (
+      <section className="panel-shell">
+        <h2 className="panel-title">Tasks</h2>
+      
+
+        <ul className="event-list">
+          {tasks.map((task) => (
+            <li key={task.id} className="event-card">
+              <div className="event-main">
+                <div className="event-title-row">
+                  <div className="event-title-main">
+                    <span className="event-type-pill">
+                      <span className="event-type-emoji">✅</span>
+                      TASK
+                    </span>
+                    <h3 className="event-title">{task.title}</h3>
+                  </div>
+                </div>
+
+                {task.description && (
+                  <p className="event-description">
+                    {task.description}
+                  </p>
+                )}
+
+                <div className="event-meta">
+                  {task.due_date && (
+                    <span>Due {formatDate(task.due_date)}</span>
+                  )}
+                </div>
+              </div>
+
+              <div className="event-actions">
+                <button
+                  className="btn-small"
+                  onClick={() => openEditTaskForm(task)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn-small btn-danger"
+                  onClick={() => handleTaskDelete(task)}
+                >
+                  Delete
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      </section>
+    );
+  };
 
   const renderProfileTab = () => {
     const initial =
@@ -535,9 +690,7 @@ function DashboardPage() {
           </div>
           <div className="profile-setting-row">
             <span>Notifications</span>
-            <span className="badge-soft subtle">
-              Coming soon
-            </span>
+            <span className="badge-soft subtle">Coming soon</span>
           </div>
           <div className="profile-setting-row">
             <span>App version</span>
@@ -585,8 +738,14 @@ function DashboardPage() {
           {activeTab === "profile" && renderProfileTab()}
         </main>
 
+        {/* FABs */}
         {activeTab === "schedule" && (
           <button className="fab" onClick={openCreateForm}>
+            +
+          </button>
+        )}
+        {activeTab === "tasks" && (
+          <button className="fab" onClick={openCreateTaskForm}>
             +
           </button>
         )}
@@ -618,6 +777,7 @@ function DashboardPage() {
           </button>
         </nav>
 
+        {/* EVENT SHEET */}
         {showForm && (
           <div className="sheet-backdrop" onClick={closeForm}>
             <div
@@ -625,9 +785,7 @@ function DashboardPage() {
               onClick={(e) => e.stopPropagation()}
             >
               <div className="sheet-header">
-                <h2>
-                  {editingEvent ? "Edit Event" : "New Event"}
-                </h2>
+                <h2>{editingEvent ? "Edit Event" : "New Event"}</h2>
                 <button
                   className="sheet-close"
                   onClick={closeForm}
@@ -664,9 +822,7 @@ function DashboardPage() {
                     value={form.type}
                     onChange={handleChange}
                   >
-                    <option value="event">
-                      Event / Appointment
-                    </option>
+                    <option value="event">Event / Appointment</option>
                     <option value="class">Class</option>
                   </select>
                 </label>
@@ -733,6 +889,80 @@ function DashboardPage() {
                     : editingEvent
                     ? "Save changes"
                     : "Create event"}
+                </button>
+              </form>
+            </div>
+          </div>
+        )}
+
+        {/* TASK SHEET */}
+        {showTaskForm && (
+          <div className="sheet-backdrop" onClick={closeTaskForm}>
+            <div
+              className="sheet"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sheet-header">
+                <h2>{editingTask ? "Edit Task" : "New Task"}</h2>
+                <button
+                  className="sheet-close"
+                  onClick={closeTaskForm}
+                >
+                  ✕
+                </button>
+              </div>
+
+              <form className="sheet-form" onSubmit={handleTaskSubmit}>
+                <label className="field">
+                  <span>Title</span>
+                  <input
+                    name="title"
+                    value={taskForm.title}
+                    onChange={handleTaskFormChange}
+                    placeholder="Finish CSC homework..."
+                  />
+                </label>
+
+                <label className="field">
+                  <span>Description</span>
+                  <textarea
+                    name="description"
+                    value={taskForm.description}
+                    onChange={handleTaskFormChange}
+                    placeholder="Optional details"
+                  />
+                </label>
+
+                <label className="field">
+                  <span>Due date</span>
+                  <input
+                    type="date"
+                    name="due_date"
+                    value={taskForm.due_date}
+                    onChange={handleTaskFormChange}
+                  />
+                </label>
+
+                <label className="field">
+                  <span>Due time</span>
+                  <input
+                    type="time"
+                    name="due_time"
+                    value={taskForm.due_time}
+                    onChange={handleTaskFormChange}
+                  />
+                </label>
+
+                <button
+                  type="submit"
+                  className="btn-primary"
+                  disabled={taskFormLoading}
+                >
+                  {taskFormLoading
+                    ? "Saving..."
+                    : editingTask
+                    ? "Save task"
+                    : "Create task"}
                 </button>
               </form>
             </div>

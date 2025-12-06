@@ -65,16 +65,13 @@ export async function apiLogin(email, password) {
     body: JSON.stringify({ email, password }),
   });
 
-  // Adding this log so you can inspect the backend response
   console.log("LOGIN RESPONSE", response);
 
-  // Backend: { success, message, data: { user, token } }
   const token = response.data?.token;
   if (!token) {
     throw new Error("Token missing from login response");
   }
 
-  // Save JWT so future requests include Authorization header
   saveToken(token);
 
   return response.data; // { user, token }
@@ -107,6 +104,37 @@ export function updateEvent(event) {
   });
 }
 
+// ---- TASKS ----
+// These match the routes you tested with curl:
+// GET    /api/tasks
+// POST   /api/tasks/create
+// DELETE /api/tasks/delete
+export async function getTasks() {
+  const res = await apiFetch("/tasks", { method: "GET" });
+  return res.data;
+}
+
+export function createTask(task) {
+  return apiFetch("/tasks/create", {
+    method: "POST",
+    body: JSON.stringify(task),
+  });
+}
+
+export function updateTask(task) {
+  return apiFetch("/tasks/update", {
+    method: "PUT",
+    body: JSON.stringify(task),
+  });
+}
+
+export function deleteTask(id) {
+  return apiFetch("/tasks/delete", {
+    method: "DELETE",
+    body: JSON.stringify({ id }),
+  });
+}
+
 // ---- ADMIN ----
 export async function getAllUsers() {
   const res = await apiFetch("/admin/users", { method: "GET" });
@@ -130,3 +158,9 @@ export const apiGetEvents = getEvents;
 export const apiCreateEvent = createEvent;
 export const apiDeleteEvent = deleteEvent;
 export const apiUpdateEvent = updateEvent;
+
+// NEW: aliases for tasks so we keep the same pattern
+export const apiGetTasks = getTasks;
+export const apiCreateTask = createTask;
+export const apiUpdateTask = updateTask;
+export const apiDeleteTask = deleteTask;
