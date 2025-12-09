@@ -36,39 +36,29 @@ const AdminDashboard = () => {
     if (loading) return <p>Loading dashboard...</p>
 
     return (
-        <div style={{ padding: "30px", fontFamily: "Arial" }}>
+        <div className="mobile-main">
+            <div className="panel-shell">
 
-            <h1>Admin Dashboard</h1>
+                <h1>Admin Dashboard</h1>
 
-            {/* Summary cards */}
-            <div style={{ display: "flex", gap: "20px", marginTop: "20px" }}>
-                <div style={{
-                    padding: "20px",
-                    background: "#f5f5f5",
-                    borderRadius: "10px",
-                    width: "200px",
-                    textAlign: "center"
-                }}>
-                    <h3>Total Users</h3>
-                    <h1>{users.length}</h1>
+                {/* Summary cards */}
+                <div className="chip-row" style={{ marginTop: "20px" }}>
+                    <div className="panel-shell" style={{ width: "200px", textAlign: "center", padding: "12px" }}>
+                        <h3>Total Users</h3>
+                        <h1>{users.length}</h1>
+                    </div>
+
+                    <div className="panel-shell" style={{ width: "200px", textAlign: "center", padding: "12px" }}>
+                        <h3>Total Events</h3>
+                        <h1>{eventCount}</h1>
+                    </div>
                 </div>
 
-                <div style={{
-                    padding: "20px",
-                    background: "#f5f5f5",
-                    borderRadius: "10px",
-                    width: "200px",
-                    textAlign: "center"
-                }}>
-                    <h3>Total Events</h3>
-                    <h1>{eventCount}</h1>
-                </div>
-            </div>
+                {/* User table */}
+                <h2 style={{ marginTop: "40px" }}>All Users</h2>
 
-            {/* User table */}
-            <h2 style={{ marginTop: "40px" }}>All Users</h2>
-
-            <table border="1" cellPadding="10" style={{ marginTop: "20px", width: "100%" }}>
+                <div style={{ marginTop: "20px" }}>
+                    <table style={{ width: "100%" }}>
                 <thead>
                     <tr>
                         <th>ID</th>
@@ -90,25 +80,15 @@ const AdminDashboard = () => {
                             <td>{user.created_at}</td>
 
                             <td>
-                                <button
-                                    onClick={() => deleteUser(user.id)}
-                                    style={{
-                                        background: "red",
-                                        color: "white",
-                                        padding: "5px 10px",
-                                        border: "none",
-                                        borderRadius: "5px",
-                                        cursor: "pointer"
-                                    }}
-                                >
-                                    Delete
-                                </button>
+                                <button onClick={() => deleteUser(user.id)} className="btn-danger">Delete</button>
                             </td>
                         </tr>
                     ))}
                 </tbody>
 
             </table>
+                </div>
+            </div>
         </div>
     );
 }
