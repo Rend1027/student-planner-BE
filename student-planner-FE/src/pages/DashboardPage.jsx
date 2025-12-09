@@ -10,6 +10,7 @@ import {
   apiUpdateTask,
   apiDeleteTask,
 } from "../api/client";
+import NotificationBell from "../components/NotificationBell";
 
 const DAY_LABELS = {
   mon: "Mon",
@@ -717,6 +718,9 @@ function DashboardPage() {
                 Classes · Events · Appointments
               </p>
             </div>
+          </div>
+          <div className="app-header-right" style={{ marginLeft: "auto", paddingRight: 12 }}>
+            <NotificationBell />
           </div>
         </header>
 

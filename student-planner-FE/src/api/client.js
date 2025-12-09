@@ -164,3 +164,39 @@ export const apiGetTasks = getTasks;
 export const apiCreateTask = createTask;
 export const apiUpdateTask = updateTask;
 export const apiDeleteTask = deleteTask;
+
+// ---- NOTIFICATIONS ----
+export async function getNotifications(page = 1, limit = 20) {
+  const res = await apiFetch(`/notifications?limit=${limit}&page=${page}`, {
+    method: "GET",
+  });
+  // Expecting { notifications: [...], page, total, unread_count }
+  return res.data;
+}
+
+export async function getUnreadCount() {
+  const res = await apiFetch(`/notifications/unread-count`, {
+    method: "GET",
+  });
+  return res.data?.unread_count ?? 0;
+}
+
+export function markNotificationRead(id) {
+  return apiFetch(`/notifications/${id}/read`, {
+    method: "PATCH",
+  });
+}
+
+export function markAllNotificationsRead() {
+  return apiFetch(`/notifications/mark-all-read`, {
+    method: "PATCH",
+  });
+}
+
+export function createNotification(payload) {
+  // payload: { student_id, message, type, metadata? }
+  return apiFetch(`/notifications/create`, {
+    method: "POST",
+    body: JSON.stringify(payload),
+  });
+}
