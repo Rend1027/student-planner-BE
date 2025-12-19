@@ -30,7 +30,22 @@ async function apiFetch(path, options = {}) {
     headers,
   });
 
-  const data = await res.json();
+  // Get response text first to check if it's JSON
+  const text = await res.text();
+  let data;
+  
+  try {
+    data = JSON.parse(text);
+  } catch (e) {
+    // If response is not JSON (likely a PHP error), show a helpful error
+    console.error("API Error - Non-JSON response:", text);
+    throw new Error(
+      "Server error: " + 
+      (text.includes("<b>") 
+        ? "Please check the backend server logs for details." 
+        : text.substring(0, 200))
+    );
+  }
 
   if (!res.ok) {
     throw new Error(data.message || "Request failed");

@@ -161,16 +161,48 @@ button {
 }
 
 .app-logo {
-  width: 34px;
-  height: 34px;
-  border-radius: 999px;
-  background: radial-gradient(circle at 20% 0, #8b5cf6, #4f46e5);
+  width: 60px;
+  height: 60px;
+  border-radius: 12px;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 0.8rem;
   font-weight: 700;
-  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.55);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+  position: relative;
+}
+
+.logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  border-radius: 12px;
+}
+
+.logo-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 20% 0, #8b5cf6, #4f46e5);
+  border-radius: 12px;
+}
+
+.logo-placeholder-text {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.logo-placeholder-note {
+  font-size: 0.5rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 0.1rem;
 }
 
 .app-title {
@@ -411,22 +443,7 @@ button {
 
 /* FAB + bottom nav ------------------------------------- */
 
-.fab {
-  position: fixed;
-  right: 1.4rem;
-  bottom: 4.4rem;
-  width: 52px;
-  height: 52px;
-  border-radius: 999px;
-  border: none;
-  background: radial-gradient(circle at top, #fb923c, #ea580c);
-  color: #fff;
-  font-size: 1.6rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
-}
+/* FAB styling moved to layout.css for better organization */
 
 .bottom-nav {
   position: fixed;
@@ -757,23 +774,35 @@ button {
 
 /* Center the main dashboard column inside the app container on wider screens */
 .mobile-header,
-.greeting-strip,
-.mobile-main {
+.greeting-strip {
   margin-top: 1.2rem;
-
-  
-  max-width: 420px;          /* column width on desktop/tablet */
+  max-width: 420px;
   margin-left: auto;
   margin-right: auto;
 }
 
-/* On small phones, let it be full width (max-width does nothing if viewport < 540) */
+.mobile-main {
+  margin-top: 1.2rem;
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* On small phones, let it be full width */
 @media (max-width: 640px) {
   .mobile-header,
   .greeting-strip,
   .mobile-main {
     max-width: 100%;
+  }
+}
 
+/* Override max-width for split layout on desktop */
+@media (min-width: 1024px) {
+  .mobile-main {
+    max-width: 100%;
+    margin-left: 0;
+    margin-right: 0;
   }
 }
 
@@ -789,3 +818,4 @@ button {
 .panel-shell {
   margin-top: 1rem; /* NEW */
 }
+
