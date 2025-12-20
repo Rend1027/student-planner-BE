@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Smart Student Scheduler logo">
+  <defs>
+    <style>
+      .text {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      }
+    </style>
+  </defs>
+
+  <!-- Background shape -->
+  <rect x="10" y="10" width="180" height="180" rx="32" fill="#111827"/>
+
+  <!-- Main S -->
+  <text x="62" y="128" class="text" font-size="96" font-weight="800" fill="#ffffff">S</text>
+
+  <!-- Superscript 3 -->
+  <text x="118" y="78" class="text" font-size="48" font-weight="800" fill="#ffffff">3</text>
+
+  <!-- Underline -->
+  <rect x="60" y="140" width="90" height="12" rx="6" fill="#ffffff" opacity="0.9"/>
+</svg>
+
+
+
+

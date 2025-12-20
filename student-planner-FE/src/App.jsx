@@ -1,33 +1,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider, RequireAdmin, useAuth } from "./context/AuthContext";
-import LoginPage from "./pages/LoginPage";
+import { AuthProvider, RequireAdmin } from "./context/AuthContext";
+import { ProtectedRoute } from "./components/layout";
+import HomePage from "./pages/HomePage";
 import DashboardPage from "./pages/DashboardPage";
-import RegisterPage from "./pages/RegisterPage";   // 👈 new
 import AdminDashboard from "./pages/AdminDashboard";
-
-function ProtectedRoute({ children }) {
-  const { isAuthenticated, loading } = useAuth();
-
-  if (loading) {
-    return <div style={{ padding: "2rem", textAlign: "center" }}>Loading...</div>;
-  }
-
-
-  if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
-  }
-
-  return children;
-}
 
 function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} /> {/* 👈 new */}
+          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/login" element={<HomePage />} />
+          <Route path="/register" element={<HomePage />} />
           <Route
             path="/dashboard"
             element={

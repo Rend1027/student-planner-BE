@@ -1,0 +1,22 @@
+:root {
+  --bg-body: radial-gradient(circle at top, #1e293b 0, #020617 55%);
+  --card-bg: rgba(15, 23, 42, 0.96);
+  --card-bg-soft: rgba(15, 23, 42, 0.9);
+  --border-subtle: rgba(148, 163, 184, 0.35);
+  --border-subtle-soft: rgba(148, 163, 184, 0.25);
+  --accent: #8b5cf6;
+  --accent-strong: #7c3aed;
+  --accent-soft: rgba(139, 92, 246, 0.18);
+  --accent-orange: #fb923c;
+  --accent-blue: #3b82f6;
+  --text-main: #e5e7eb;
+  --text-muted: #9ca3af;
+  --error: #fecaca;
+  --success: #bbf7d0;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --shadow-card: 0 24px 60px rgba(15, 23, 42, 0.9);
+  --transition-fast: 0.18s ease-out;
+}
+

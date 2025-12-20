@@ -1,0 +1,15 @@
+/* Base styles */
+@import "./base/variables.css";
+@import "./base/reset.css";
+@import "./base/typography.css";
+
+/* Component styles */
+@import "./components/layout.css";
+@import "./components/ui.css";
+@import "./components/events.css";
+@import "./components/dashboard.css";
+@import "./components/auth.css";
+@import "./components/homepage.css";
+@import "./components/calendar.css";
+@import "./components/dashboard-page.css";
+
